@@ -4,7 +4,8 @@ import sys
 
 class MapCreation:
     def __init__(self, startWidth, startHeight):
-        sys.setrecursionlimit(1500)
+        sys.setrecursionlimit(2000)
+        self.recursionCounter = 0
         self.width = startWidth
         self.height = startHeight
         self.fillArr = ['f', 'w', 'p']
@@ -16,6 +17,7 @@ class MapCreation:
         self.openSet = []
         self.Backtrack((self.startPos, None), self.endPos)
         self.PlaceFloor()
+        self.DebugMap()
         self.FillMap()
         self.DebugMap()
 
@@ -46,7 +48,8 @@ class MapCreation:
                 _closedSet = self.GetValidTiles(_start[0])
             else:
                 _closedSet = _start[1]
-            nodeToExplore = _closedSet[random.randrange(0, len(_closedSet), 1)]
+            if len(_closedSet) > 0:
+                nodeToExplore = _closedSet[random.randrange(0, len(_closedSet), 1)]
             if len(_closedSet) > 0:
                 _closedSet.remove(nodeToExplore)
                 #if len(_closedSet) == 0:
@@ -61,20 +64,30 @@ class MapCreation:
                 self.openSet.pop()
                 self.Backtrack(self.openSet[len(self.openSet)-1], _end)
 
+    def IsInOpenSet(self, _currentPos):
+        for i in self.openSet:
+            if i[0] == _currentPos:
+                return True
+        return False
+
     def GetValidTiles(self, _currentPos):
         newSet = []
 
         if _currentPos[0] + 1 < self.width:
-            if self.ValidateTile(self.map[_currentPos[0]+1][_currentPos[1]]):
+            rightPos = (_currentPos[0]+1, _currentPos[1])
+            if self.ValidateTile(self.map[rightPos[0]][rightPos[1]]) and not self.IsInOpenSet(rightPos):
                 newSet.append((_currentPos[0] + 1, _currentPos[1]))
         if _currentPos[0] - 1 > 0:
-            if self.ValidateTile(self.map[_currentPos[0]-1][_currentPos[1]]):
+            leftPos = (_currentPos[0]-1, _currentPos[1])
+            if self.ValidateTile(self.map[leftPos[0]][leftPos[1]]) and not self.IsInOpenSet(leftPos):
                 newSet.append((_currentPos[0] - 1, _currentPos[1]))
         if _currentPos[1] + 1 < self.height:
-            if self.ValidateTile(self.map[_currentPos[0]][_currentPos[1]+1]):
+            upPos = (_currentPos[0], _currentPos[1]+1)
+            if self.ValidateTile(self.map[upPos[0]][upPos[1]]) and not self.IsInOpenSet(upPos):
                 newSet.append((_currentPos[0], _currentPos[1] + 1))
         if _currentPos[1] - 1 > 0:
-            if self.ValidateTile(self.map[_currentPos[0]][_currentPos[1] - 1]):
+            downPos = (_currentPos[0],_currentPos[1]-1)
+            if self.ValidateTile(self.map[downPos[0]][downPos[1]]) and not self.IsInOpenSet(downPos):
                 newSet.append((_currentPos[0], _currentPos[1]))
         return newSet
 
