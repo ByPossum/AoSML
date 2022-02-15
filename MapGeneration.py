@@ -4,7 +4,7 @@ import sys
 
 class MapCreation:
     def __init__(self, startWidth, startHeight):
-        sys.setrecursionlimit(2000)
+        sys.setrecursionlimit(1500)
         self.recursionCounter = 0
         self.width = startWidth
         self.height = startHeight
@@ -37,6 +37,11 @@ class MapCreation:
                 self.map[x[0][0]][x[0][1]] = 'f'
             iter += 1
 
+    def FindPath(self):
+        newMap = None
+        while newMap is None:
+            pass
+
     def Backtrack(self, _start, _end):
         # Found the path
         if _start[0] == _end:
@@ -52,8 +57,6 @@ class MapCreation:
                 nodeToExplore = _closedSet[random.randrange(0, len(_closedSet), 1)]
             if len(_closedSet) > 0:
                 _closedSet.remove(nodeToExplore)
-                #if len(_closedSet) == 0:
-                #    _closedSet = None
                 if len(self.openSet) > 0:
                     self.openSet[len(self.openSet)-1] = (_start[0], _closedSet)
                 # Proceeds to the next node
