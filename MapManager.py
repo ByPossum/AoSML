@@ -4,6 +4,7 @@ class MapMan:
     def __init__(self):
         self.map = MapCreation(20, 20)
 
+
     def GetMap(self):
         return self.map.map
 

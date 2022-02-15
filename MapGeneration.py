@@ -1,10 +1,11 @@
 import random
 import sys
 
+LEGAL_MOVES = [ (-1, 0), (1, 0), (0, -1), (0, 1) ]
 
 class MapCreation:
     def __init__(self, startWidth, startHeight):
-        sys.setrecursionlimit(1500)
+        sys.setrecursionlimit(1600)
         self.recursionCounter = 0
         self.width = startWidth
         self.height = startHeight
@@ -15,11 +16,11 @@ class MapCreation:
         self.endPos = self.SetEnd()
         self.closedSet = []
         self.openSet = []
-        self.Backtrack((self.startPos, None), self.endPos)
-        self.PlaceFloor()
+        self.PlaceFloor(self.random_walk(self.startPos))
         self.DebugMap()
-        self.FillMap()
-        self.DebugMap()
+        #self.DebugMap()
+        #self.FillMap()
+        #self.DebugMap()
 
     def GetMap(self):
         return self.map
@@ -30,12 +31,13 @@ class MapCreation:
             newMap.append(['n']*self.width)
         return newMap
 
-    def PlaceFloor(self):
-        iter = 0
-        for x in self.openSet:
-            if self.map[x[0][0]][x[0][1]] != 's' and self.map[x[0][0]][x[0][1]] != 'e':
-                self.map[x[0][0]][x[0][1]] = 'f'
-            iter += 1
+    def PlaceFloor(self, newMap):
+        for x in range(0, self.width):
+            for y in range(0, self.height):
+                if len(newMap[x * self.height + y]) == 1:
+                    direction = newMap[x * self.height + y][0]
+                    chosen_pos = x + direction[0], y + direction[1]
+                    self.map[chosen_pos[0]][chosen_pos[1]] = 'f'
 
     def FindPath(self):
         newMap = None
@@ -55,7 +57,6 @@ class MapCreation:
                 _closedSet = _start[1]
             if len(_closedSet) > 0:
                 nodeToExplore = _closedSet[random.randrange(0, len(_closedSet), 1)]
-            if len(_closedSet) > 0:
                 _closedSet.remove(nodeToExplore)
                 if len(self.openSet) > 0:
                     self.openSet[len(self.openSet)-1] = (_start[0], _closedSet)
@@ -66,6 +67,34 @@ class MapCreation:
                 # Return to the last explored node.
                 self.openSet.pop()
                 self.Backtrack(self.openSet[len(self.openSet)-1], _end)
+
+    def fill_grid(self, sx, sy):
+        legal_grid = []
+        for i in range(0, sx*sy):
+            legal_grid.append( LEGAL_MOVES )
+        return legal_grid
+
+    def random_walk(self, curr):
+        legal_grid = self.fill_grid(self.width, self.height)
+        self.func_recursive(curr, legal_grid)
+        return legal_grid
+
+    def func_recursive(self, curr, legal_grid):
+        moves = random.sample(LEGAL_MOVES, len(LEGAL_MOVES))
+        for move in moves:
+            new = curr[0] + move[0], curr[1] + move[1]
+
+            if self.is_legal_move(new) and len(legal_grid[new[0] * self.height + new[1]]) == 4:
+                legal_grid[curr[0] * self.height + curr[1]] = [move]
+                legal_grid[new[0] * self.height + new[1]] = [ (move[0] * -1, move[1] * -1) ]
+                self.func_recursive(new, legal_grid)
+
+    def is_legal_move(self, curr):
+        if 0 <= curr[0] < self.width:
+            if 0 <= curr[1] < self.height:
+                #return False
+                return self.map[curr[0]][curr[1]] in ('n', 's', 'e')
+        return False
 
     def IsInOpenSet(self, _currentPos):
         for i in self.openSet:
