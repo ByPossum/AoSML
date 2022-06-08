@@ -12,11 +12,13 @@ class MapCreation:
         self.fillArr = ['f', 'w', 'p']
         self.map = self.InitializeMap()
         self.SurroundMapInWall()
+        self.startDir = ()
         self.startPos = self.SetStart()
         self.endPos = self.SetEnd()
         self.closedSet = []
         self.openSet = []
-        self.PlaceFloor(self.random_walk(self.startPos))
+        self.openSet.append(self.startPos)
+        self.PlaceFloor(self.generateMazeV2(self.startPos, self.endPos, [], self.startDir))
         self.DebugMap()
         #self.DebugMap()
         #self.FillMap()
@@ -32,8 +34,8 @@ class MapCreation:
         return newMap
 
     def PlaceFloor(self, newMap):
-        for x in range(0, self.width):
-            for y in range(0, self.height):
+        for x in range(0, self.width - 1):
+            for y in range(0, self.height - 1):
                 if len(newMap[x * self.height + y]) == 1:
                     direction = newMap[x * self.height + y][0]
                     chosen_pos = x + direction[0], y + direction[1]
@@ -65,8 +67,28 @@ class MapCreation:
                 self.Backtrack((self.openSet[len(self.openSet)-1]), _end)
             else:
                 # Return to the last explored node.
-                self.openSet.pop()
                 self.Backtrack(self.openSet[len(self.openSet)-1], _end)
+
+    def generateMazeV2(self, startPos, endPos, maze, lastMove):
+        # Get current node
+        currentNode = startPos
+        # Traverse into another node next to this one. This will always tend to the left at present
+        for i in range(len(LEGAL_MOVES)):
+            nextMove = (currentNode[0] + LEGAL_MOVES[i][0], currentNode[1] + LEGAL_MOVES[i][1])
+            if nextMove not in maze and self.ValidateTile(self.map[nextMove[0]][nextMove[1]]):
+                # Add the current node to the list
+                maze.append(nextMove)
+                lastMove = LEGAL_MOVES[i]
+                for j in range(len(LEGAL_MOVES)):
+                    # If you're at the end return the map
+                    endChecker = (nextMove[0] + LEGAL_MOVES[j][0], nextMove[1] + LEGAL_MOVES[j][1])
+                    if endChecker == endPos:
+                        return maze
+                return self.generateMazeV2(nextMove, endPos, maze, lastMove)
+                break
+        return self.generateMazeV2(maze[len(maze)-1], endPos, maze, lastMove)
+        # If you can't traverse to a new node restart
+
 
     def fill_grid(self, sx, sy):
         legal_grid = []
@@ -149,6 +171,10 @@ class MapCreation:
 
     def SetStart(self):
         zeroPos, extreme = self.DoSomeCoinFlips()
+        self.startDir = (1 if zeroPos == 0 else 0, 0 if zeroPos == 0 else 1)
+        print("(" + zeroPos.__str__() + "," + extreme.__str__() + ")")
+        if extreme:
+            self.startDir = (self.startDir[0] * -1, self.startDir[1] * -1)
         x, y = self.GetPositionAlongWall(zeroPos, extreme)
         self.map[x][y] = 's'
         return x, y

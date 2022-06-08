@@ -2,7 +2,7 @@ from MapGeneration import MapCreation
 
 class MapMan:
     def __init__(self):
-        self.map = MapCreation(20, 20)
+        self.map = MapCreation(5, 5)
 
 
     def GetMap(self):
