@@ -15,6 +15,7 @@ class MapCreation:
         self.startDir = ()
         self.startPos = self.SetStart()
         self.endPos = self.SetEnd()
+        self.allMoves = self.InitializeMovement()
         self.closedSet = []
         self.openSet = []
         self.openSet.append(self.startPos)
@@ -32,6 +33,12 @@ class MapCreation:
         for x in range(self.height):
             newMap.append(['n']*self.width)
         return newMap
+
+    def InitializeMovement(self):
+        allMovement = []
+        for x in range(self.height):
+            allMovement.append([LEGAL_MOVES]*self.width)
+        return allMovement
 
     def PlaceFloor(self, newMap):
         for x in range(0, self.width - 1):
@@ -72,21 +79,27 @@ class MapCreation:
     def generateMazeV2(self, startPos, endPos, maze, lastMove):
         # Get current node
         currentNode = startPos
-        # Traverse into another node next to this one. This will always tend to the left at present
-        for i in range(len(LEGAL_MOVES)):
-            nextMove = (currentNode[0] + LEGAL_MOVES[i][0], currentNode[1] + LEGAL_MOVES[i][1])
-            if nextMove not in maze and self.ValidateTile(self.map[nextMove[0]][nextMove[1]]):
-                # Add the current node to the list
-                maze.append(nextMove)
-                lastMove = LEGAL_MOVES[i]
-                for j in range(len(LEGAL_MOVES)):
-                    # If you're at the end return the map
-                    endChecker = (nextMove[0] + LEGAL_MOVES[j][0], nextMove[1] + LEGAL_MOVES[j][1])
-                    if endChecker == endPos:
-                        return maze
-                return self.generateMazeV2(nextMove, endPos, maze, lastMove)
-                break
-        return self.generateMazeV2(maze[len(maze)-1], endPos, maze, lastMove)
+        # If there are no moves to be made from this node go back a node
+        if len(self.allMoves[currentNode[0]][currentNode[1]]) <= 0:
+            generateMazeV2((startPos[0] - lastMove[0], startPos[1] - lastMove[1]), endPos, maze, lastMove)
+
+        # Get a random direction and move in it (this needs to be fixed)
+        direction = self.allMoves[currentNode[0]][currentNode[1]][random.randrange(0, len(LEGAL_MOVES)-1)]
+        self.allMoves[currentNode[0]][currentNode[1]].remove(direction)
+        nextMove = (currentNode[0] + direction[0], currentNode[1] + direction[1])
+
+        # Check if you can actually move to the new node
+        if nextMove not in maze and self.TileInMap(nextMove) and self.ValidateTile(self.map[nextMove[0]][nextMove[1]]):
+            # Add the current node to the list
+            maze.append(nextMove)
+            lastMove = LEGAL_MOVES[i]
+            for j in range(len(LEGAL_MOVES)):
+                # If you're at the end return the map
+                endChecker = (nextMove[0] + LEGAL_MOVES[j][0], nextMove[1] + LEGAL_MOVES[j][1])
+                if endChecker == endPos:
+                    return maze
+            return self.generateMazeV2(nextMove, endPos, maze, lastMove)
+        return self.generateMazeV2((startPos[0] - lastMove[0], startPos[1] - lastMove[1]), endPos, maze, lastMove)
         # If you can't traverse to a new node restart
 
 
@@ -192,6 +205,11 @@ class MapCreation:
             return False
         else:
             return True
+
+    def TileInMap(self, _tile):
+        if _tile[0] >= 0 and _tile[0] <= self.width and _tile[1] >= 0 and _tile[1] <= self.height:
+            return True
+        return False
 
     def FillMap(self):
         for x in range(0, len(self.map)):
