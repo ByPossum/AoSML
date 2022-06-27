@@ -16,7 +16,9 @@ class MapCreation:
         self.startPos = self.SetStart()
         self.endPos = self.SetEnd()
         self.allMoves = self.InitializeMovement()
-        self.PlaceFloor(self.generateMazeV2(self.startPos, self.endPos, [], self.startDir))
+        self.iterations = 0
+        self.PlaceFloor(self.CreateMaze((self.startPos[0] - self.startDir[0], self.startPos[1] - self.startDir[1]),
+                                        self.endPos, [], [self.startDir]))
         self.DebugMap()
         #self.DebugMap()
         #self.FillMap()
@@ -36,43 +38,24 @@ class MapCreation:
         return allMovement
 
     def PlaceFloor(self, newMap):
+        print(newMap)
         for i in range(0, len(newMap)):
-            self.map[newMap[i][0][1]] = 'f'
+            self.map[newMap[i][0]][newMap[i][1]] = 'f'
 
     def FindPath(self):
         newMap = None
         while newMap is None:
             pass
 
-    def Backtrack(self, _start, _end):
-        # Found the path
-        if _start[0] == _end:
-            return self.openSet
-        else:
-            # If something is a wall or a pit, it's not a valid tile
-            _closedSet = []
-            if _start[1] is None:
-                _closedSet = self.GetValidTiles(_start[0])
-            else:
-                _closedSet = _start[1]
-            if len(_closedSet) > 0:
-                nodeToExplore = _closedSet[random.randrange(0, len(_closedSet), 1)]
-                _closedSet.remove(nodeToExplore)
-                if len(self.openSet) > 0:
-                    self.openSet[len(self.openSet)-1] = (_start[0], _closedSet)
-                # Proceeds to the next node
-                self.openSet.append((nodeToExplore, None))
-                self.Backtrack((self.openSet[len(self.openSet)-1]), _end)
-            else:
-                # Return to the last explored node.
-                self.Backtrack(self.openSet[len(self.openSet)-1], _end)
-
-    def generateMazeV2(self, startPos, endPos, maze, lastMove):
+    def CreateMaze(self, startPos, endPos, maze, lastMoves):
         # Get current node
+        print(self.iterations)
+        self.iterations += 1
         currentNode = startPos
         # If there are no moves to be made from this node go back a node
-        if len(self.allMoves[currentNode[0]]) <= 0:
-            return self.generateMazeV2((startPos[0] - lastMove[0], startPos[1] - lastMove[1]), endPos, maze, lastMove)
+        if len(self.allMoves[currentNode[0]][currentNode[1]]) <= 0:
+            lastMove = lastMoves.pop()
+            return self.CreateMaze((startPos[0] + lastMove[0], startPos[1] + lastMove[1]), endPos, maze, lastMoves)
 
         # Get a random direction and move in it
         moveIndex = random.randrange(0, len(LEGAL_MOVES)-1)
@@ -84,47 +67,19 @@ class MapCreation:
 
         # Check if you can actually move to the new
 
-        if nextMove not in maze and self.TileInMap(nextMove) and self.ValidateTile(self.map[nextMove[0]][nextMove[1]]):
-            # Add the current node to the list
-            maze.append(nextMove)
-            lastMove = direction
-            for j in range(len(LEGAL_MOVES)):
-                # If you're at the end return the map
-                endChecker = (nextMove[0] + LEGAL_MOVES[j][0], nextMove[1] + LEGAL_MOVES[j][1])
-                if endChecker == endPos:
-                    return maze
-            return self.generateMazeV2(nextMove, endPos, maze, lastMove)
-        return self.generateMazeV2((currentNode[0], currentNode[0]), endPos, maze, lastMove)
+        if nextMove not in maze and self.TileInMap(nextMove):
+            if self.ValidateTile(self.map[nextMove[0]][nextMove[1]]):
+                # Add the current node to the list
+                maze.append(nextMove)
+                lastMoves.append(direction)
+                for j in range(len(LEGAL_MOVES)):
+                    # If you're at the end return the map
+                    endChecker = (nextMove[0] + LEGAL_MOVES[j][0], nextMove[1] + LEGAL_MOVES[j][1])
+                    if endChecker == endPos:
+                        return maze
+                return self.CreateMaze(nextMove, endPos, maze, lastMoves)
         # If you can't traverse to a new node restart
-
-
-    def fill_grid(self, sx, sy):
-        legal_grid = []
-        for i in range(0, sx*sy):
-            legal_grid.append( LEGAL_MOVES )
-        return legal_grid
-
-    def random_walk(self, curr):
-        legal_grid = self.fill_grid(self.width, self.height)
-        self.func_recursive(curr, legal_grid)
-        return legal_grid
-
-    def func_recursive(self, curr, legal_grid):
-        moves = random.sample(LEGAL_MOVES, len(LEGAL_MOVES))
-        for move in moves:
-            new = curr[0] + move[0], curr[1] + move[1]
-
-            if self.is_legal_move(new) and len(legal_grid[new[0] * self.height + new[1]]) == 4:
-                legal_grid[curr[0] * self.height + curr[1]] = [move]
-                legal_grid[new[0] * self.height + new[1]] = [ (move[0] * -1, move[1] * -1) ]
-                self.func_recursive(new, legal_grid)
-
-    def is_legal_move(self, curr):
-        if 0 <= curr[0] < self.width:
-            if 0 <= curr[1] < self.height:
-                #return False
-                return self.map[curr[0]][curr[1]] in ('n', 's', 'e')
-        return False
+        return self.CreateMaze((currentNode[0], currentNode[1]), endPos, maze, lastMoves)
 
     def IsInOpenSet(self, _currentPos):
         for i in self.openSet:
@@ -159,7 +114,6 @@ class MapCreation:
                 if x == 0 or x == self.width-1 or y == 0 or y == self.height-1:
                     self.map[x][y] = 'w'
 
-
     def DoSomeCoinFlips(self):
         # Essentially coin flip
         zeroPos = random.getrandbits(1)
@@ -179,7 +133,7 @@ class MapCreation:
 
     def SetStart(self):
         zeroPos, extreme = self.DoSomeCoinFlips()
-        self.startDir = (1 if zeroPos == 0 else 0, 0 if zeroPos == 0 else 1)
+        self.startDir = (0 if zeroPos == 0 else 1, 0 if zeroPos == 0 else 1)
         print("(" + zeroPos.__str__() + "," + extreme.__str__() + ")")
         if extreme:
             self.startDir = (self.startDir[0] * -1, self.startDir[1] * -1)
@@ -196,7 +150,7 @@ class MapCreation:
         return x, y
 
     def ValidateTile(self, _tile):
-        if _tile == 'w' or _tile == 'p':
+        if _tile == 'w' or _tile == 'p' or _tile == 's' or _tile == 'e':
             return False
         else:
             return True
