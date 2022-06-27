@@ -156,7 +156,7 @@ class MapCreation:
             return True
 
     def TileInMap(self, _tile):
-        if _tile[0] >= 0 and _tile[0] <= self.width and _tile[1] >= 0 and _tile[1] <= self.height:
+        if _tile[0] >= 0 and _tile[0] <= self.width-1 and _tile[1] >= 0 and _tile[1] <= self.height-1:
             return True
         return False
 
