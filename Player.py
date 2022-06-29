@@ -24,6 +24,12 @@ class Player:
         self.targetX = x * 32
         self.targetY = y * 32
 
+    def SetStartingPos(self, x, y):
+        self.SetPos(x, y)
+        self.x = self.targetX
+        self.y = self.targetY
+        self.UpdateRect()
+
     def UpdateRect(self):
         self.sprite.rect.x = self.x
         self.sprite.rect.y = self.y

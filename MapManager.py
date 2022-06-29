@@ -2,11 +2,14 @@ from MapGeneration import MapCreation
 
 class MapMan:
     def __init__(self):
-        self.map = MapCreation(5, 5)
+        self.map = MapCreation(20, 20)
 
 
     def GetMap(self):
         return self.map.map
+
+    def GetStartPos(self):
+        return self.map.GetStartPos()
 
     def BlockAction(self, action, pos):
         if self.GetMap()[pos[0]][pos[1]] == 'w':

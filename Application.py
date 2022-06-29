@@ -16,6 +16,8 @@ class GameLoop:
         self.map = MapMan()
         self.background = TileDrawing(self.map.GetMap(), 800, 800)
         self.player = Player()
+        startPos = self.map.GetStartPos()
+        self.player.SetStartingPos(startPos[0], startPos[1])
         pygame.display.flip()
 
 
