@@ -1,4 +1,5 @@
 from MapGeneration import MapCreation
+from PlayerActions import PlayerAction
 
 class MapMan:
     def __init__(self):
@@ -11,16 +12,13 @@ class MapMan:
     def GetStartPos(self):
         return self.map.GetStartPos()
 
-    def BlockAction(self, action, pos):
-        if self.GetMap()[pos[0]][pos[1]] == 'w':
-            action = self.Knockback()
-        elif self.GetMan()[pos[0]][pos[1]] == 'p':
-            action += self.FallDownPit()
-        return action
-
-    def Knockback(self):
-        pass
-
-    def FallDownPit(self):
-        print("You fell down a pit!")
-        pass
+    def CheckNextBlock(self, pos):
+        mapChar = self.map.map[pos[0]][pos[1]]
+        if mapChar == 'f':
+            return PlayerAction.move
+        if mapChar == 'w' or mapChar == 's':
+            print("Hit a wall")
+            return PlayerAction.none
+        if mapChar == 'p':
+            print("Hit a pit")
+            return PlayerAction.pit

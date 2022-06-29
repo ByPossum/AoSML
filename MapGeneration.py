@@ -20,9 +20,8 @@ class MapCreation:
                                         self.endPos,
                                         [(self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1])],
                                         [self.startDir]))
-        #self.DebugMap()
         self.FillMap()
-        #self.DebugMap()
+        self.DebugMap()
 
     def GetMap(self):
         return self.map

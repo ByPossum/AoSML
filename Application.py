@@ -37,11 +37,11 @@ class GameLoop:
                 elif event.key == pygame.K_w:
                     self.player.MoveUp(self.map)
                 elif event.key == pygame.K_a:
-                    self.player.MoveLeft()
+                    self.player.MoveLeft(self.map)
                 elif event.key == pygame.K_s:
-                    self.player.MoveDown()
+                    self.player.MoveDown(self.map)
                 elif event.key == pygame.K_d:
-                    self.player.MoveRight()
+                    self.player.MoveRight(self.map)
 
 
     def RenderLoop(self):
@@ -53,7 +53,7 @@ class GameLoop:
         pygame.display.flip()
 
     def GameplayLoop(self):
-        self.player.Move()
+        self.player.Update()
 
     def Exit(self):
         self.Running = False
