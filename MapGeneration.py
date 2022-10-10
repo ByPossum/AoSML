@@ -16,10 +16,14 @@ class MapCreation:
         self.startPos = self.SetStart()
         self.endPos = self.SetEnd()
         self.allMoves = self.InitializeMovement()
-        self.PlaceFloor(self.CreateMaze((self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1]),
-                                        self.endPos,
-                                        [(self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1])],
-                                        [self.startDir]))
+        newMap = None
+        self.DebugMap()
+        while newMap is None:
+            newMap = self.CreateMaze((self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1]),
+                            self.endPos,
+                            [(self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1])],
+                            [self.startDir])
+        self.PlaceFloor(newMap)
         self.FillMap()
         self.DebugMap()
 
@@ -47,6 +51,8 @@ class MapCreation:
         # If the current node is still not in the map revert to the node before
         if not self.TileInMap(currentNode):
             lastMove = self.GetLastMove(lastMoves)
+            if lastMove is None:
+                return None
             return self.CreateMaze((currentNode[0] + lastMove[0], currentNode[1] + lastMove[1]), endPos, maze, lastMoves)
 
         # If there are no moves to be made from this node go back a node
@@ -102,8 +108,9 @@ class MapCreation:
 
     def GetLastMove(self, lastMoves):
         lastMove = (0, 0)
-        if len(lastMoves) > 0:
-            lastMove = lastMoves.pop()
+        if len(lastMoves) <= 0:
+            return None
+        lastMove = lastMoves.pop()
         return lastMove
 
     def SurroundMapInWall(self):

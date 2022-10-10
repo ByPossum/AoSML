@@ -63,6 +63,8 @@ class Player:
         self.SetStartingPos(self.startX, self.startY)
         print("Fell into a pit")
         self.currentAction = PlayerAction.none
+
+    def Jump(self, dir):
         pass
 
     def MoveUp(self, map: MapMan):
@@ -82,4 +84,7 @@ class Player:
                 return PlayerAction.move
             if self.currentAction == PlayerAction.pit:
                 return PlayerAction.pit
+            if self.currentAction == PlayerAction.jumpSelect:
+                return PlayerAction.jumpSelect
             return PlayerAction.none
+
