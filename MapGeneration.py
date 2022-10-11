@@ -1,11 +1,12 @@
 import random
 import sys
-
+import copy
+import numpy
 LEGAL_MOVES = [ (-1, 0), (1, 0), (0, -1), (0, 1) ]
 
 class MapCreation:
     def __init__(self, startWidth, startHeight):
-        sys.setrecursionlimit(1600)
+        sys.setrecursionlimit(16000)
         self.recursionCounter = 0
         self.width = startWidth
         self.height = startHeight
@@ -19,7 +20,7 @@ class MapCreation:
         newMap = None
         self.DebugMap()
         while newMap is None:
-            newMap = self.CreateMaze((self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1]),
+            newMap = self.BeginCreatingMaze((self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1]),
                             self.endPos,
                             [(self.startPos[0] + self.startDir[0], self.startPos[1] + self.startDir[1])],
                             [self.startDir])
@@ -37,36 +38,45 @@ class MapCreation:
         return newMap
 
     def InitializeMovement(self):
-        allMovement = [[LEGAL_MOVES.copy()]*self.width for _ in range(self.height)]
+        allMovement = [[copy.deepcopy(LEGAL_MOVES)]*self.width for _ in range(self.height)]
         return allMovement
 
     def PlaceFloor(self, newMap):
         for i in range(0, len(newMap)):
             self.map[newMap[i][0]][newMap[i][1]] = 'f'
 
+    def BeginCreatingMaze(self, startPos, endPos, maze, lastMove):
+        for moves in LEGAL_MOVES:
+            if startPos[0] + moves[0] == endPos[0] and startPos[1] + moves[1] == endPos[1]:
+                maze.append(startPos)
+                return maze
+        return self.CreateMaze(startPos, endPos, maze, lastMove)
+
     def CreateMaze(self, startPos, endPos, maze, lastMoves):
         # Get current node
         currentNode = startPos
-
         # If the current node is still not in the map revert to the node before
         if not self.TileInMap(currentNode):
             lastMove = self.GetLastMove(lastMoves)
             if lastMove is None:
                 return None
-            return self.CreateMaze((currentNode[0] + lastMove[0], currentNode[1] + lastMove[1]), endPos, maze, lastMoves)
+            return self.CreateMaze((currentNode[0] - lastMove[0], currentNode[1] - lastMove[1]), endPos, maze, lastMoves)
 
         # If there are no moves to be made from this node go back a node
         if len(self.allMoves[currentNode[0]][currentNode[1]]) <= 0:
             lastMove = self.GetLastMove(lastMoves)
-            return self.CreateMaze((startPos[0] + lastMove[0], startPos[1] + lastMove[1]), endPos, maze, lastMoves)
+            if lastMove is None:
+                return None
+            return self.CreateMaze((currentNode[0] - lastMove[0], currentNode[1] - lastMove[1]), endPos, maze, lastMoves)
 
         # Get a random direction
         moveIndex = random.randrange(0, len(self.allMoves[currentNode[0]][currentNode[1]]))
         direction = self.allMoves[currentNode[0]][currentNode[1]][moveIndex]
+        nextMove = (currentNode[0] + direction[0], currentNode[1] + direction[1])
+
         row = self.allMoves[currentNode[0]][currentNode[1]].copy()
         row.pop(moveIndex)
         self.allMoves[currentNode[0]][currentNode[1]] = row
-        nextMove = (currentNode[0] + direction[0], currentNode[1] + direction[1])
 
         # Check you can move in the new direction
         if nextMove not in maze and self.TileInMap(nextMove):
@@ -181,3 +191,8 @@ class MapCreation:
             print(textMap)
             textMap = ""
         print("")
+
+    def GetDistanceToGoal(self, playerPos):
+        x = (playerPos[0] - self.endPos[0]) **2
+        y = (playerPos[1] - self.endPos[1]) **2
+        return numpy.sqrt(x+y)

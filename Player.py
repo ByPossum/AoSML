@@ -61,11 +61,13 @@ class Player:
 
     def FallInPit(self):
         self.SetStartingPos(self.startX, self.startY)
-        print("Fell into a pit")
         self.currentAction = PlayerAction.none
 
     def Jump(self, dir):
         pass
+
+    def GetMoving(self):
+        return self.currentAction
 
     def MoveUp(self, map: MapMan):
         self.currentAction = self.GetActionBasedOnMovement(self.tileX, self.tileY - 1, map)
